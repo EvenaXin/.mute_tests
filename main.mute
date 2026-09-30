@@ -1,0 +1,108 @@
+label init
+    set world to array
+    make array["init_make_player", 2, 3, 1] as in
+    goto make_object
+    label init_make_player
+        set player to out[0]
+    make array["test_input.txt"] as popul
+    set key to 0
+    label populate_world
+        set char_key to 0
+        set in_x to 0
+        set in_y to 0
+        set in_tags to 0
+        set str to ""
+        label make_obj_unit
+            set str to str + popul[key][char_key]
+            set char_key to char_key + 1
+            if popul[key][char_key] is ","
+                if in_x is 0
+                    make array["set_popul_obj_x", str]
+                    goto string_to_num
+                    label set_popul_obj_x
+                        set in_x to out[0]
+                        set char_key to 0
+                        goto make_obj_unit
+                if in_y is 0
+                    make array["set_popul_obj_y", str]
+                    goto string_to_num
+                    label set_popul_obj_y
+                        set in_y to out[0]
+                        set char_key to 0
+                        goto make_obj_unit
+                if in_tags is 0
+                    make array["set_popul_obj_tags", str]
+                    goto string_to_num
+                    label set_popul_obj_tags
+                        set in_tags to out[0]
+                        set char_key to 0
+                        goto make_obj_unit
+                make array["populate_world",in_x,in_y,in_tags]
+                set key to key + 1
+                goto make_object
+
+label make_object
+    set return_label to in[0]
+    set out_obj to object
+        set x to in[1]
+        set y to in[2]
+        set tags to in[3]
+    make array["make_object_post_world", in[1], in[2], out_obj]
+    goto add_to_world
+    label make_object_post_world
+    set out to array
+    push out out_obj
+
+label add_to_world
+    set return_label to in[0]
+    set coords to in[1] + "," + in[2]
+    if world[coords] is 0
+        set world[coords] to array
+    push world[coords] in[3]
+    goto value of return_label
+
+label string_to_num
+    set ret_label to in[0]
+    set string to in[1]
+    set pv to 0
+    set pow to 0
+    set digits to 0
+    set neg to false
+    set key to string'length - 1
+    label get_pv
+        if key is 0
+            if string[key] is "-1"
+                set neg to true
+                set key to key + 1
+        if string[key] is "."
+            set pow to string'length - key - 1
+            print pow
+            set key to key - 1
+        if string[key] is "0"
+            set digits to digits + (0 * (10 **pv))
+        if string[key] is "1"
+            set digits to digits + (1 * (10 **pv))
+        if string[key] is "2"
+            set digits to digits + (2 * (10 **pv))
+        if string[key] is "3"
+            set digits to digits + (3 * (10 **pv))
+        if string[key] is "4"
+            set digits to digits + (4 * (10 **pv))
+        if string[key] is "5"
+            set digits to digits + (5 * (10 **pv))
+        if string[key] is "6"
+            set digits to digits + (6 * (10 **pv))
+        if string[key] is "7"
+            set digits to digits + (7 * (10 **pv))
+        if string[key] is "8"
+            set digits to digits + (8 * (10 **pv))
+        if string[key] is "9"
+            set digits to digits + (9 * (10 **pv))
+        set pv to pv + 1
+        set key to key - 1
+        if key greater -1
+            goto get_pv
+        if neg is true
+            set digits to 0 - digits
+        make array[digits * (10 ** (0 - pow))] as out
+        goto value of ret_label
