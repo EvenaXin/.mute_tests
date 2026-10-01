@@ -1,152 +1,554 @@
 label init
+    make title["consolized"] as None
+    set move_layer to array
+    set font to "game/res/Hack-Regular.ttf"
+    set alph to "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    set dimmer to "game/res/dimmer.png"
+    delete inserted_code
+    set print_pulse to false
     set running to true
-    set falseval to 0.01
+    set backspace_delay to 1.2
+    set backspace_held to false
+    set backspace_time to 0
+    set backspace_speed to 0.04
+    set player to object
+        label position_pl
+            set x to 0
+            set y to 0
+        set active_console to false
+        set tags to 0
     set world to object
-    make array["init_make_player", 0, 0, 1] as in
-    goto make_object
-    label init_make_player
-        set player to out[0]
-    make array["game/test_input.txt"] as popul
-    set key to 0
-    label populate_world
-        set in_x to 0.01
-        set in_y to 0.01
-        set in_tags to 0.01
-        set char_key to 0
-        set str to ""
-        label obj_make_unit
-            set str to str + popul[key][char_key]
-            set char_key to char_key + 1
-            if popul[key][char_key] is ","
-                set char_key to char_key + 1
-                if in_x is 0.01
-                    make array["set_popul_obj_x", str] as in
-                    goto string_to_num
-                    label set_popul_obj_x
-                        set in_x to out[0]
-                        set str to ""
-                        goto obj_make_unit
-                if in_y is 0.01
-                    make array["set_popul_obj_y", str] as in
-                    goto string_to_num
-                    label set_popul_obj_y
-                        set in to array
-                        set in_y to out[0]
-                        set str to ""
-                        goto obj_make_unit
-                if in_tags is 0.01
-                    make array["set_popul_obj_tags", str] as in
-                    goto string_to_num
-                    label set_popul_obj_tags
-                        set in_tags to out[0]
-                        set str to ""
-                        goto obj_make_unit
-            make array["populate_world",in_x,in_y,in_tags,47] as in
-            print in
-            set key to key + 1
-            if key less popul'length
-                goto make_object
-            goto main
-
-
-label make_object
-    set return_label_make to in[0]
-    if in'length is 5
-    set out_obj to object
-        set x to in[1]
-        set y to in[2]
-        set tags to in[3]
-    make array["make_object_post_world", in[1], in[2], out_obj] as in
-    goto add_to_world
-    label make_object_post_world
-    set out to array
-    push out out_obj
-    goto value of return_label_make
-
-label add_to_world
-    set return_label_add to in[0]
-    set coords to in[1] + "," + in[2]
-    if world[coords] is 0
-        set world[coords] to array
-    push world[coords] in[3]
-    goto value of return_label_add
-
-label string_to_num
-    set stn_ret_label to in[0]
-    set string to in[1]
-    print string
-    unless string is "" + string
-        make array[in[1]] as out
-        goto value of stn_ret_label
-    set pv to 0
-    set pow to 0
-    set digits to 0
-    set neg to false
-    set stn_key to string'length - 1
-    label get_pv
-        if stn_key is 0
-            if string[stn_key] is "-1"
-                set neg to true
-                set stn_key to stn_key + 1
-        if string[stn_key] is "."
-            set pow to string'length - key - 1
-            set stn_key to stn_key - 1
-        if string[stn_key] is "0"
-            set digits to digits + (0 * (10 **pv))
-        if string[stn_key] is "1"
-            set digits to digits + (1 * (10 **pv))
-        if string[stn_key] is "2"
-            set digits to digits + (2 * (10 **pv))
-        if string[stn_key] is "3"
-            set digits to digits + (3 * (10 **pv))
-        if string[stn_key] is "4"
-            set digits to digits + (4 * (10 **pv))
-        if string[stn_key] is "5"
-            set digits to digits + (5 * (10 **pv))
-        if string[stn_key] is "6"
-            set digits to digits + (6 * (10 **pv))
-        if string[stn_key] is "7"
-            set digits to digits + (7 * (10 **pv))
-        if string[stn_key] is "8"
-            set digits to digits + (8 * (10 **pv))
-        if string[stn_key] is "9"
-            set digits to digits + (9 * (10 **pv))
-        set pv to pv + 1
-        set stn_key to stn_key - 1
-        if stn_key greater -1
-            goto get_pv
-        if neg is true
-            set digits to 0 - digits
-        make array[digits * (10 ** (0 - pow))] as out
-        goto value of stn_ret_label
-
-label draw
-    push draw text["press escape to exit.", "game/res/Hack-BoldItalic.ttf",24,0,0,false]
-    set x to -6
-    set y to -6
-    label draw_column
-        set dy to y * 32 + (getgh / 2) - 16
-        label draw_row
-            set dx to x * 32 + (getgw / 2) - 16
-            unless world[x + "," + y] is 0
-                print world[-6 + "," + 6]
-                push draw rect[dx,dy,dx+32,dy+32]
-            if x less 6
-                set x to x + 1
-                goto draw_row
-        if y less 6
-            set y to y + 1
-            set x to -6
-            goto draw_column
-    print "world:" + world
-    set running to false
-    draw all
+    set time to 0
+    make array[player'x,player'y,player] as in
+    set post_insert_world to "post_insert_player"
+    goto insert_world
+    label post_insert_player
+        #Marks the addition of the player to the world
+    goto place_init_consoles
+    label post_init_consoles
+    set px to -6
+    set py to -6
+    label insert_square
+        set in_3 to object
+            set tags to 8
+            set x to px
+            set y to py
+        if px is -6
+            make array[px,py,in_3] as in
+        if px is 6
+            make array[px,py,in_3] as in
+        unless px is -6
+            unless px is 6
+                if py is -6
+                    make array[px,py,in_3] as in
+                if py is 6
+                    make array[px,py,in_3] as in
+        set post_insert_world to "post_square_insert"
+        goto insert_world
+        label post_square_insert
+        set py to py + 1
+        if py less 7
+            goto insert_square
+        set px to px + 1
+        if px less 7
+            set py to -6
+            goto insert_square
+    set insert_name to "inserted_code"
+    label post_init
     goto main
 
 
+label place_init_consoles
+    make array["game/res/initial_consoles/initial_consoles.txt"] as init_consoles
+    set arr_key to 0
+    label build_init_cons
+        set charkey to 0
+        set cons_x to "false"
+        set cons_y to "false"
+        set cons_rate to "false"
+        set ignore_entry to "false"
+        set cons_content to array
+        label build_init_cons_content
+            if cons_x is "false"
+                make array["cons_x", init_consoles[arr_key]] as in
+                goto string_to_num
+                label cons_x
+                    set cons_x to out[0]
+                    set arr_key to arr_key + 1
+                    goto build_init_cons_content
+            if cons_y is "false"
+                make array["cons_y", init_consoles[arr_key]] as in
+                goto string_to_num
+                label cons_y
+                    set cons_y to out[0]
+                    set arr_key to arr_key + 1
+                    goto build_init_cons_content
+            if cons_rate is "false"
+                make array["cons_rate", init_consoles[arr_key]] as in
+                goto string_to_num
+                label cons_rate
+                    set cons_rate to out[0]
+                    set arr_key to arr_key + 1
+                    goto build_init_cons_content
+            if init_consoles[arr_key] is "true"
+                set ignore_entry to true
+            label build_cons_content
+                if init_consoles[arr_key] is "=="
+                    set arr_key to arr_key + 1
+                    if ignore_entry is "false"
+                        if init_consoles'length greater arr_key + 3
+                            set post_new_console to "build_init_cons"
+                        unless init_consoles'length greater arr_key + 3
+                            set post_new_console to "post_init_consoles"
+                        make array[cons_x,cons_y,cons_rate,cons_content] as in
+                        goto new_console
+                    goto build_init_cons
+                if ignore_entry is "false"
+                    push cons_content init_consoles[arr_key]
+                    set arr_key to arr_key + 1
+                    goto build_cons_content
+    goto post_init_consoles
+
+label string_to_num
+    set ret_label to in[0]
+    set string to in[1]
+    set pv to 0
+    set pow to 0
+    set digits to 0
+    set key to string'length - 1
+    label get_pv
+        if string[key] is "."
+            set pow to string'length - key - 1
+            print pow
+            set key to key - 1
+        if string[key] is "0"
+            set digits to digits + (0 * (10 **pv))
+        if string[key] is "1"
+            set digits to digits + (1 * (10 **pv))
+        if string[key] is "2"
+            set digits to digits + (2 * (10 **pv))
+        if string[key] is "3"
+            set digits to digits + (3 * (10 **pv))
+        if string[key] is "4"
+            set digits to digits + (4 * (10 **pv))
+        if string[key] is "5"
+            set digits to digits + (5 * (10 **pv))
+        if string[key] is "6"
+            set digits to digits + (6 * (10 **pv))
+        if string[key] is "7"
+            set digits to digits + (7 * (10 **pv))
+        if string[key] is "8"
+            set digits to digits + (8 * (10 **pv))
+        if string[key] is "9"
+            set digits to digits + (9 * (10 **pv))
+        set pv to pv + 1
+        set key to key - 1
+        if key greater -1
+            goto get_pv
+        make array[digits * (10 ** (0 - pow))] as out
+        goto value of ret_label
+
+
+label insert_world
+    if in'length greater 0
+        if world[in[0] + "," + in[1]] is 0
+            set world[in[0] + "," + in[1]] to array
+        push world[in[0] + "," + in[1]] in[2]
+        set in to array
+    goto value of post_insert_world
+
+label remove_from_world
+    if in'length greater 0
+        set key to 0
+        set found to false
+        label search_to_remove
+            if world[in[0] + "," + in[1]][key] is in[2]
+                pop world[in[0] + "," + in[1]][key] as "None"
+                set found to true
+            set key to key + 1
+            unless found
+                goto search_to_remove
+            if world[in[0] + "," + in[1]]'length is 0
+                set world[in[0] + "," + in[1]] to 0
+    goto value of post_remove_from_world
+
+label move_in_world
+    set dir_x to in[0]
+    set dir_y to in[1]
+    set obj to in[2]
+    set forced to in[3]
+    set start_x to obj'x
+    set start_y to obj'y
+    set out to array
+    if in'length greater 3
+        if forced is true
+            make array[start_x,start_y,obj] as in
+            set post_remove_from_world to "remove_in_move"
+            goto remove_from_world
+            label remove_in_move
+            set obj'x to obj'x + dir_x
+            set obj'y to obj'y + dir_y
+            make array[obj'x,obj'y,obj] as in
+            set post_insert_world to post_move_in_world
+            push out true
+            goto insert_world
+    set blocked to false
+    set final_x to obj'x + dir_x
+    set final_y to obj'y + dir_y
+    set move_is_cons to false
+    unless world[final_x + "," + final_y] is 0
+        set key to 0
+        label test_tags_move
+            make array[world[final_x + "," + final_y][key],1] as in
+            set post_get_tags to "move_get_is_cons"
+            goto get_object_tag
+            label move_get_is_cons
+            set is_cons to out[0]
+            make array[world[final_x + "," + final_y][key],4] as in
+            set post_get_tags to "move_get_is_wall"
+            goto get_object_tag
+            label move_get_is_wall
+            set is_wall to out[0]
+            if is_cons
+                set move_is_cons to true
+                set move_cons to world[final_x + "," + final_y][key]
+            if is_wall
+                set blocked to true
+            set key to key + 1
+            if key less world[final_x + "," + final_y]'length
+                goto test_tags_move
+    unless blocked is true
+        make array[obj'x,obj'y,obj] as in
+        set post_remove_from_world to "remove_in_move"
+        goto remove_from_world
+        label remove_in_move
+        set obj'x to final_x
+        set obj'y to final_y
+        make array[obj'x,obj'y,obj] as in
+        set post_insert_world to post_move_in_world
+        goto insert_world
+    goto value of post_move_in_world
+
+
+label new_console
+    set out to object
+        set x to in[0]
+        set y to in[1]
+        set und_tog_spd to in[2]
+        set container to array
+        set line to ""
+        set toprint to ""
+        set und_tog to 0
+        set und_tog_time to 0
+        set tags to 31
+        set log to ""
+    if in'length greater 3
+        set key to 0
+        label set_console_code
+            set out'toprint to out'toprint + in[3][key]
+            set out'toprint to out'toprint + "\n"
+            push out'container in[3][key]
+            set key to key + 1
+            if key less in[3]'length
+                goto set_console_code
+    set post_insert_world to post_new_console
+    make array[out'x,out'y,out] as in
+    goto insert_world
+
+label get_object_tag
+    set out to array
+    set obj_tag to 2 ** (in[1] - 1)
+    set dev_result to in[0]'tags / obj_tag
+    if dev_result'floor % 2 is 1
+        push out true
+    push out false
+    goto value of post_get_tags
+
+label put_object_tag
+    set obj_tag to 2 ** (in[1] - 1)
+    if in[0]'tags / obj_tag'floor % 2 is 0
+        set in[0]'tags to in[0]'tags + obj_tag
+    goto value of post_put_tag
+
+
+label draw
+    draw set color[255,255,255,180]
+    set wx to player'x - 5
+    set wy to player'y - 5
+    label print_world
+        unless world[wx + "," + wy] is 0
+            set key to 0
+            draw set color[255,255,255,255]
+            label print_tile
+                make array[world[wx + "," + wy][key],1] as in
+                set post_get_tags to "draw_get_tags"
+                goto get_object_tag
+                label draw_get_tags
+                if print_pulse
+                    print out[0]
+                if out[0] is true
+                    draw set color[0,255,0,255]
+                set dx to wx - player'x * 64 + getgw / 2
+                set dy to wy - player'y * 64 + getgh / 2
+                push draw rect[dx,dy,dx + 32,dy + 32]
+        set wy to wy + 1
+        if wy less player'y + 5
+            goto print_world
+        set wx to wx + 1
+        if wx less player'x + 5
+            set wy to player'y - 5
+            goto print_world
+        set printed to true
+    if player'active_console
+        draw set color[255,255,255,255]
+        push draw img[dimmer,0,0,getgw,getgh]
+        draw set color[0,255,0,255]
+        set player'active_console'und_tog_time to player'active_console'und_tog_time + getdt
+        if player'active_console'und_tog_time greater player'active_console'und_tog_spd
+            set player'active_console'und_tog to player'active_console'und_tog + 1 % 2
+            set player'active_console'und_tog_time to 0
+        if player'active_console'und_tog
+            push draw text[player'active_console'toprint + "_",font,16,18,18,false]
+        unless player'active_console'und_tog
+            push draw text[player'active_console'toprint,font,16,18,18,false]
+        push draw rect[12,getgh / 2 + 8,getgw - 12,getgh / 2 + 10]
+        push draw text[player'active_console'log,font,16,18,getgh / 2 + 18,getgw - 36]
+
+    push draw text[getdt,font,16,getgw - 128,0,false]
+    draw all
+    goto value of post_draw
+
+label runner
+
+label ignore_this
+    delete inserted_code
+    goto value of post_runner
 
 label main
+    set time to getdt * 6 + time
+    set shift to false
+    if keyboard "rshift"
+        set shift to true
+    if keyboard "lshift"
+        set shift to true
     if keyboard "esc" down
-        set running to false
+        unless player'active_console
+            set running to false
+        if player'active_console
+            set player'active_console to false
+    unless player'active_console
+        if keyboard "w" down
+            label w_down
+                make array[0,-1,player] as in
+                set post_move_in_world to "post_w_move"
+                goto move_in_world
+                label post_w_move
+                if move_is_cons
+                    set player'active_console to move_cons
+        if keyboard "a" down
+            label a_down
+                make array[-1,0,player] as in
+                set post_move_in_world to "post_a_move"
+                goto move_in_world
+                label post_a_move
+                if move_is_cons
+                    set player'active_console to move_cons
+        if keyboard "s" down
+            label s_down
+                make array[0,1,player] as in
+                set post_move_in_world to "post_s_move"
+                goto move_in_world
+                label post_s_move
+                if move_is_cons
+                    set player'active_console to move_cons
+        if keyboard "d" down
+            label d_down
+                make array[1,0,player] as in
+                print in
+                set post_move_in_world to "post_d_move"
+                goto move_in_world
+                label post_d_move
+                if move_is_cons
+                    set player'active_console to move_cons
+        if keyboard "space" down
+            set print_pulse to true
+            print world
+        label player_post_move
+            set post_draw to "post_main_draw"
+            goto draw
+    if player'active_console
+        set key to 0
+        label alph_keys
+            set let to alph[key]
+            if keyboard let down
+                if shift
+                    set player'active_console'line to player'active_console'line + alph[key + 26]
+                    set player'active_console'toprint to player'active_console'toprint + alph[key + 26]
+                unless shift
+                    set player'active_console'line to player'active_console'line + alph[key]
+                    set player'active_console'toprint to player'active_console'toprint + alph[key]
+            set key to key + 1
+            if key less 26
+                goto alph_keys
+            set key to 0
+            label num_keys
+                set num to key + ""
+                if keyboard num down
+                    if shift is true
+                        if num is "8"
+                            set player'active_console'line to player'active_console'line + "*"
+                            set player'active_console'toprint to player'active_console'toprint + "*"
+                        if num is "9"
+                            set player'active_console'line to player'active_console'line + "("
+                            set player'active_console'toprint to player'active_console'toprint + "("
+                        if num is "0"
+                            set player'active_console'line to player'active_console'line + ")"
+                            set player'active_console'toprint to player'active_console'toprint + ")"
+                    unless shift
+                        set player'active_console'line to player'active_console'line + num
+                        set player'active_console'toprint to player'active_console'toprint + num
+                if key less 9
+                    set key to key + 1
+                    goto num_keys
+        if keyboard "backspace" down
+            if player'active_console'toprint'length greater 0
+                if player'active_console'toprint[-1] is "\n"
+                    set player'active_console'line to player'active_console'container[player'active_console'container'length - 1]
+                    pop player'active_console'container[player'active_console'container'length - 1] as "None"
+                    set player'active_console'toprint to player'active_console'toprint[0,-2]
+                    goto post_backspace_tap
+                if player'active_console'toprint'length is 1
+                    set player'active_console'line to ""
+                    set player'active_console'toprint to ""
+                    set player'active_console'container to array
+                    goto post_backspace_tap
+                if player'active_console'toprint[-1] is "\""
+                    set player'active_console'line to player'active_console'line[0,-2]
+                    set player'active_console'toprint to player'active_console'toprint[0,-2]
+                    goto post_backspace_tap
+                set player'active_console'line to player'active_console'line[0,-2]
+                set player'active_console'toprint to player'active_console'toprint[0,-2]
+        label post_backspace_tap
+        if keyboard "backspace"
+            if backspace_held
+                set backspace_time to backspace_time + getdt
+                if backspace_time less backspace_speed
+                    goto post_backspace
+            unless backspace_held
+                set backspace_time to backspace_time + getdt
+                if backspace_time less backspace_delay
+                    goto post_backspace
+                set backspace_held to true
+            if player'active_console'toprint'length greater 0
+                if player'active_console'toprint[-1] is "\n"
+                    set player'active_console'line to player'active_console'container[player'active_console'container'length - 1]
+                    pop player'active_console'container[player'active_console'container'length - 1] as "None"
+                    set player'active_console'toprint to player'active_console'toprint[0,-2]
+                    goto post_backspace
+                if player'active_console'toprint'length is 1
+                    set player'active_console'line to ""
+                    set player'active_console'toprint to ""
+                    set player'active_console'container to array
+                    goto post_backspace
+                if player'active_console'toprint[-1] is "\""
+                    set player'active_console'line to player'active_console'line[0,-2]
+                    set player'active_console'toprint to player'active_console'toprint[0,-2]
+                    goto post_backspace
+                set player'active_console'line to player'active_console'line[0,-2]
+                set player'active_console'toprint to player'active_console'toprint[0,-2]
+                set backspace_time to 0
+        label post_backspace
+        unless keyboard "backspace"
+            set backspace_time to 0
+            set backspace_held to false
+        if keyboard "apo" down
+            if shift
+                set player'active_console'line to player'active_console'line + "\""
+                set player'active_console'toprint to player'active_console'toprint + "\""
+            unless shift
+                set player'active_console'line to player'active_console'line + "'"
+                set player'active_console'toprint to player'active_console'toprint + "'"
+        if keyboard "[" down
+            set player'active_console'line to player'active_console'line + "["
+            set player'active_console'toprint to player'active_console'toprint + "["
+        if keyboard "]" down
+            set player'active_console'line to player'active_console'line + "]"
+            set player'active_console'toprint to player'active_console'toprint + "]"
+        if keyboard "bslash" down
+            set player'active_console'line to player'active_console'line + "\\"
+            set player'active_console'toprint to player'active_console'toprint + "\\"
+        if keyboard "," down
+            set player'active_console'line to player'active_console'line + ","
+            set player'active_console'toprint to player'active_console'toprint + ","
+        if keyboard "." down
+            set player'active_console'line to player'active_console'line + "."
+            set player'active_console'toprint to player'active_console'toprint + "."
+        if keyboard "-" down
+            if shift
+                set player'active_console'line to player'active_console'line + "_"
+                set player'active_console'toprint to player'active_console'toprint + "_"
+            unless shift
+                set player'active_console'line to player'active_console'line + "-"
+                set player'active_console'toprint to player'active_console'toprint + "-"
+        if keyboard "=" down
+            if shift
+                set player'active_console'line to player'active_console'line + "+"
+                set player'active_console'toprint to player'active_console'toprint + "+"
+            unless shift
+                set player'active_console'line to player'active_console'line + "="
+                set player'active_console'toprint to player'active_console'toprint + "="
+        if keyboard "space" down
+            set player'active_console'line to player'active_console'line + " "
+            set player'active_console'toprint to player'active_console'toprint + " "
+        if keyboard "enter" down
+            if shift
+                push player'active_console'container player'active_console'line
+                prefix runner with
+                    label value of insert_name
+                set key to player'active_console'container'length - 1
+                label ins_code_loc
+                    set ins_code to player'active_console'container[key]
+                    set scan_index to 0
+                    set transformed_code to ""
+                    if ins_code'length greater 0
+                        label scan_for_value_of
+                            if ins_code[scan_index,scan_index + 8] is "value of "
+                                set transformed_code to transformed_code + "value of value of "
+                                set scan_index to scan_index + 9
+                                label skip_subsequent_value_of
+                                    if ins_code[scan_index,scan_index + 8] is "value of "
+                                        set transformed_code to transformed_code + "value of "
+                                        set scan_index to scan_index + 9
+                                        goto skip_subsequent_value_of
+                            unless ins_code[scan_index,scan_index + 8] is "value of "
+                                set transformed_code to transformed_code + ins_code[scan_index]
+                                set scan_index to scan_index + 1
+                            if scan_index less ins_code'length
+                                goto scan_for_value_of
+                        prefix inserted_code with value of transformed_code
+                    if key greater 0
+                        set key to key - 1
+                        goto ins_code_loc
+                set player'active_console'container to array
+                set player'active_console'line to ""
+                set player'active_console'toprint to ""
+                set post_runner to "post_main_runner"
+                goto runner
+                label post_main_runner
+                    set player'active_console to false
+                    set post_draw to "post_main_draw"
+                    goto draw
+            unless shift
+                push player'active_console'container player'active_console'line
+                set player'active_console'line to ""
+                set player'active_console'toprint to player'active_console'toprint + "\n"
+    set post_draw to "post_main_draw"
+    goto draw
+    label post_main_draw
+    set print_pulse to false
     if running
-        goto draw
+        goto main
+
+label post_run
+
+label skip_post_run
