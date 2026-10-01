@@ -1,0 +1,16 @@
+4
+4
+0.8
+#makes the world remember the player's position
+prefix post_run with
+    replace position_pl with
+        set x to value of value of player'x
+        set y to value of value of player'y
+prefix init with
+    set world_remember_player_pos to true
+==
+4
+0
+0.8
+set player'active_console'log to \"This is a test.\"
+==
