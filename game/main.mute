@@ -1,0 +1,152 @@
+label init
+    set running to true
+    set falseval to 0.01
+    set world to object
+    make array["init_make_player", 0, 0, 1] as in
+    goto make_object
+    label init_make_player
+        set player to out[0]
+    make array["game/test_input.txt"] as popul
+    set key to 0
+    label populate_world
+        set in_x to 0.01
+        set in_y to 0.01
+        set in_tags to 0.01
+        set char_key to 0
+        set str to ""
+        label obj_make_unit
+            set str to str + popul[key][char_key]
+            set char_key to char_key + 1
+            if popul[key][char_key] is ","
+                set char_key to char_key + 1
+                if in_x is 0.01
+                    make array["set_popul_obj_x", str] as in
+                    goto string_to_num
+                    label set_popul_obj_x
+                        set in_x to out[0]
+                        set str to ""
+                        goto obj_make_unit
+                if in_y is 0.01
+                    make array["set_popul_obj_y", str] as in
+                    goto string_to_num
+                    label set_popul_obj_y
+                        set in to array
+                        set in_y to out[0]
+                        set str to ""
+                        goto obj_make_unit
+                if in_tags is 0.01
+                    make array["set_popul_obj_tags", str] as in
+                    goto string_to_num
+                    label set_popul_obj_tags
+                        set in_tags to out[0]
+                        set str to ""
+                        goto obj_make_unit
+            make array["populate_world",in_x,in_y,in_tags,47] as in
+            print in
+            set key to key + 1
+            if key less popul'length
+                goto make_object
+            goto main
+
+
+label make_object
+    set return_label_make to in[0]
+    if in'length is 5
+    set out_obj to object
+        set x to in[1]
+        set y to in[2]
+        set tags to in[3]
+    make array["make_object_post_world", in[1], in[2], out_obj] as in
+    goto add_to_world
+    label make_object_post_world
+    set out to array
+    push out out_obj
+    goto value of return_label_make
+
+label add_to_world
+    set return_label_add to in[0]
+    set coords to in[1] + "," + in[2]
+    if world[coords] is 0
+        set world[coords] to array
+    push world[coords] in[3]
+    goto value of return_label_add
+
+label string_to_num
+    set stn_ret_label to in[0]
+    set string to in[1]
+    print string
+    unless string is "" + string
+        make array[in[1]] as out
+        goto value of stn_ret_label
+    set pv to 0
+    set pow to 0
+    set digits to 0
+    set neg to false
+    set stn_key to string'length - 1
+    label get_pv
+        if stn_key is 0
+            if string[stn_key] is "-1"
+                set neg to true
+                set stn_key to stn_key + 1
+        if string[stn_key] is "."
+            set pow to string'length - key - 1
+            set stn_key to stn_key - 1
+        if string[stn_key] is "0"
+            set digits to digits + (0 * (10 **pv))
+        if string[stn_key] is "1"
+            set digits to digits + (1 * (10 **pv))
+        if string[stn_key] is "2"
+            set digits to digits + (2 * (10 **pv))
+        if string[stn_key] is "3"
+            set digits to digits + (3 * (10 **pv))
+        if string[stn_key] is "4"
+            set digits to digits + (4 * (10 **pv))
+        if string[stn_key] is "5"
+            set digits to digits + (5 * (10 **pv))
+        if string[stn_key] is "6"
+            set digits to digits + (6 * (10 **pv))
+        if string[stn_key] is "7"
+            set digits to digits + (7 * (10 **pv))
+        if string[stn_key] is "8"
+            set digits to digits + (8 * (10 **pv))
+        if string[stn_key] is "9"
+            set digits to digits + (9 * (10 **pv))
+        set pv to pv + 1
+        set stn_key to stn_key - 1
+        if stn_key greater -1
+            goto get_pv
+        if neg is true
+            set digits to 0 - digits
+        make array[digits * (10 ** (0 - pow))] as out
+        goto value of stn_ret_label
+
+label draw
+    push draw text["press escape to exit.", "game/res/Hack-BoldItalic.ttf",24,0,0,false]
+    set x to -6
+    set y to -6
+    label draw_column
+        set dy to y * 32 + (getgh / 2) - 16
+        label draw_row
+            set dx to x * 32 + (getgw / 2) - 16
+            unless world[x + "," + y] is 0
+                print world[-6 + "," + 6]
+                push draw rect[dx,dy,dx+32,dy+32]
+            if x less 6
+                set x to x + 1
+                goto draw_row
+        if y less 6
+            set y to y + 1
+            set x to -6
+            goto draw_column
+    print "world:" + world
+    set running to false
+    draw all
+    goto main
+
+
+
+label main
+    if keyboard "esc" down
+        set running to false
+    if running
+        goto draw
